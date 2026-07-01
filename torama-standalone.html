@@ -43,7 +43,7 @@
         <p class="text-lg text-orange-700/80 leading-tight">תורים ליום תספורות אצל רמה</p>
       </div>
     </div>
-    <button id="adminToggleBtn" class="hidden text-sm text-stone-400 hover:text-orange-800 flex items-center gap-1 shrink-0"></button>
+    <button id="adminToggleBtn" style="display:none" class="text-sm text-stone-400 hover:text-orange-800 items-center gap-1 shrink-0"></button>
   </div>
 </header>
 
@@ -263,10 +263,10 @@ function render() {
 
   const adminBtn = document.getElementById("adminToggleBtn");
   if (state.mode === "admin") {
-    adminBtn.classList.remove("hidden");
+    adminBtn.style.display = "flex";
     adminBtn.innerHTML = "✕ יציאה מניהול";
   } else {
-    adminBtn.classList.add("hidden");
+    adminBtn.style.display = "none";
     adminBtn.innerHTML = "";
   }
 
