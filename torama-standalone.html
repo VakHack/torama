@@ -121,6 +121,7 @@ let state = {
   selectedDate: null,
   bookingSlot: null, // { baseStart, availableChoice: 'both' | 'half1only' | 'half2only' }
   bookingConfirmation: null, // { date, startMin, endMin }
+  loaded: { config: false, days: false },
   bookingError: "",
   expandedAdminDate: null,
   pinError: "",
@@ -269,10 +270,12 @@ function escapeHtml(str) {
 /* ---------------- Firebase listeners ---------------- */
 db.ref("config").on("value", (snap) => {
   state.config = snap.val() || { pin: DEFAULT_PIN };
+  state.loaded.config = true;
   render();
 });
 db.ref("days").on("value", (snap) => {
   state.days = snap.val() || {};
+  state.loaded.days = true;
   render();
 });
 
@@ -418,6 +421,16 @@ document.getElementById("brandIcon").addEventListener("click", () => {
 function render() {
   const app = document.getElementById("app");
   const today = todayStr();
+
+  if (!state.loaded.config || !state.loaded.days) {
+    app.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-16 text-stone-400">
+        <div class="w-8 h-8 border-4 border-orange-200 border-t-orange-700 rounded-full animate-spin mb-3"></div>
+        <p class="text-sm">טוען נתונים...</p>
+      </div>`;
+    document.getElementById("adminToggleBtn").style.display = "none";
+    return;
+  }
 
   const modalOverlay = document.getElementById("confirmModalOverlay");
   if (state.bookingConfirmation) {
