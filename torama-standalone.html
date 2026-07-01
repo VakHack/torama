@@ -310,6 +310,8 @@ function toggleActive(date) {
 }
 
 function deleteDay(date) {
+  const ok = window.confirm(`האם אתה בטוח שברצונך למחוק את כל היום ${formatDateLong(date)}? כל התורים שנקבעו בו יימחקו לצמיתות.`);
+  if (!ok) return;
   db.ref("days/" + date).remove();
   if (state.expandedAdminDate === date) state.expandedAdminDate = null;
 }
