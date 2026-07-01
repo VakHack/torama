@@ -278,9 +278,11 @@ function render() {
           class="w-full border border-stone-300 rounded-lg px-3 py-2 mb-2 text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-orange-700" />
         ${state.pinError ? `<p class="text-red-600 text-sm mb-2">${state.pinError}</p>` : ""}
         <button id="pinSubmitBtn" class="w-full bg-orange-800 text-white rounded-lg py-2 font-medium hover:bg-orange-900 transition">כניסה</button>
+        <button id="pinCancelBtn" class="w-full bg-stone-200 text-stone-700 rounded-lg py-2 font-medium hover:bg-stone-300 transition mt-2">חזרה לראשי</button>
         <p class="text-xs text-stone-400 mt-3">קוד ברירת מחדל: 1234 (ניתן לשינוי בפאנל הניהול)</p>
       </div>`;
     document.getElementById("pinSubmitBtn").addEventListener("click", checkPin);
+    document.getElementById("pinCancelBtn").addEventListener("click", exitAdmin);
     document.getElementById("pinInput").addEventListener("keydown", (e) => { if (e.key === "Enter") checkPin(); });
     document.getElementById("pinInput").focus();
     return;
@@ -290,7 +292,7 @@ function render() {
     const allDates = Object.keys(state.days).sort();
     app.innerHTML = `
       <div class="space-y-6">
-        <button id="exitAdminBtn2" class="w-full bg-stone-800 text-white rounded-lg py-2 font-medium hover:bg-stone-900 transition">✕ יציאה ממסך הניהול</button>
+        <button id="exitAdminBtn2" class="w-full bg-stone-200 text-stone-700 rounded-lg py-2 font-medium hover:bg-stone-300 transition">✕ יציאה ממסך הניהול</button>
         <section class="bg-white rounded-xl border border-stone-200 p-5">
           <h2 class="font-bold text-orange-900 mb-4">➕ פתיחת יום חדש</h2>
           <div class="space-y-3">
