@@ -185,6 +185,23 @@ function bookingKeyLabel(key) {
   const base = key;
   return `${base}–${toHHMM(toMin(base) + SLOT_MINUTES)} (מלא)`;
 }
+function bookingKeyTimeRange(key) {
+  if (key.endsWith("-a")) return halfLabel(bookingKeyBaseStart(key), 1);
+  if (key.endsWith("-b")) return halfLabel(bookingKeyBaseStart(key), 2);
+  const base = key;
+  return `${base}–${toHHMM(toMin(base) + SLOT_MINUTES)}`;
+}
+function normalizePhoneForWhatsApp(phone) {
+  let digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("0")) digits = "972" + digits.slice(1);
+  return digits;
+}
+function buildWhatsAppLink(date, slotKey, info) {
+  const timeRange = bookingKeyTimeRange(slotKey);
+  const dateLabel = formatDateLong(date);
+  const message = `היי ${info.name}, נקבע לך תור אצל רמה ב${dateLabel} בשעה ${timeRange}. מצפים לראותך! 🙂`;
+  return `https://wa.me/${normalizePhoneForWhatsApp(info.phone)}?text=${encodeURIComponent(message)}`;
+}
 function showToast(msg) {
   const el = document.getElementById("toast");
   el.textContent = msg;
@@ -440,6 +457,7 @@ function render() {
                               <span class="font-mono shrink-0">${label}</span>
                               <span class="flex items-center gap-1.5 flex-1 justify-end min-w-0">
                                 <span class="text-sm font-medium text-stone-700 truncate">${escapeHtml(info.name)} · ${escapeHtml(info.phone)}</span>
+                                <a href="${buildWhatsAppLink(date, slot, info)}" target="_blank" rel="noopener" class="text-stone-400 hover:text-green-600 shrink-0" title="שלח אישור בוואטסאפ">💬</a>
                                 <button data-delete-booking="${date}|${slot}" data-booking-name="${escapeHtml(info.name)}" class="text-stone-300 hover:text-red-600 shrink-0" title="מחק תור">🗑</button>
                               </span>
                             </li>`;}).join("")}
