@@ -137,7 +137,8 @@ function generateSlots(day) {
   const lunchStart = toMin(day.lunchStart);
   const lunchEnd = toMin(day.lunchEnd);
   for (let t = start; t + SLOT_MINUTES <= end; t += SLOT_MINUTES) {
-    if (t >= lunchStart && t < lunchEnd) continue;
+    const slotEnd = t + SLOT_MINUTES;
+    if (t < lunchEnd && slotEnd > lunchStart) continue; // skip any slot that overlaps the lunch break at all
     slots.push(toHHMM(t));
   }
   return slots;
