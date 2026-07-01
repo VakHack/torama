@@ -290,6 +290,7 @@ function render() {
     const allDates = Object.keys(state.days).sort();
     app.innerHTML = `
       <div class="space-y-6">
+        <button id="exitAdminBtn2" class="w-full bg-stone-800 text-white rounded-lg py-2 font-medium hover:bg-stone-900 transition">✕ יציאה ממסך הניהול</button>
         <section class="bg-white rounded-xl border border-stone-200 p-5">
           <h2 class="font-bold text-orange-900 mb-4">➕ פתיחת יום חדש</h2>
           <div class="space-y-3">
@@ -368,6 +369,7 @@ function render() {
         </section>
       </div>`;
 
+    document.getElementById("exitAdminBtn2").addEventListener("click", exitAdmin);
     document.getElementById("openDayBtn").addEventListener("click", openDay);
     document.getElementById("savePinBtn").addEventListener("click", savePin);
     app.querySelectorAll("[data-toggle-date]").forEach((el) =>
