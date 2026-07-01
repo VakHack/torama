@@ -52,6 +52,18 @@
 
 <div id="toast" class="fixed top-4 right-1/2 translate-x-1/2 z-50 bg-orange-800 text-white px-4 py-2 rounded-lg shadow-lg text-sm hidden"></div>
 
+<div id="confirmModalOverlay" class="fixed inset-0 bg-black/40 z-40 hidden items-center justify-center p-4">
+  <div class="bg-white rounded-xl p-5 max-w-sm w-full border-2 border-orange-300">
+    <h3 class="brand-title font-bold text-xl text-orange-900 mb-2">✓ התור שלך נקבע!</h3>
+    <p id="confirmModalDetails" class="text-stone-700 mb-4"></p>
+    <div class="space-y-2">
+      <a id="confirmModalGoogleBtn" target="_blank" rel="noopener" class="block text-center w-full bg-orange-800 text-white rounded-lg py-2 font-medium hover:bg-orange-900 transition">📅 הוספה ליומן Google</a>
+      <button id="confirmModalIcsBtn" class="w-full bg-orange-100 text-orange-900 rounded-lg py-2 font-medium hover:bg-orange-200 transition">⬇️ הורדת קובץ ליומן (iPhone / Outlook)</button>
+      <button id="confirmModalCloseBtn" class="w-full bg-stone-200 text-stone-700 rounded-lg py-2 font-medium hover:bg-stone-300 transition">סגירה</button>
+    </div>
+  </div>
+</div>
+
 <header class="border-b-2 border-orange-300 bg-orange-100 sticky top-0 z-10">
   <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
     <div class="flex items-center gap-3">
@@ -108,6 +120,7 @@ let state = {
   mode: "client", // client | pinGate | admin
   selectedDate: null,
   bookingSlot: null, // { baseStart, availableChoice: 'both' | 'half1only' | 'half2only' }
+  bookingConfirmation: null, // { date, startMin, endMin }
   bookingError: "",
   expandedAdminDate: null,
   pinError: "",
@@ -196,11 +209,50 @@ function normalizePhoneForWhatsApp(phone) {
   if (digits.startsWith("0")) digits = "972" + digits.slice(1);
   return digits;
 }
-function buildWhatsAppLink(date, slotKey, info) {
-  const timeRange = bookingKeyTimeRange(slotKey);
-  const dateLabel = formatDateLong(date);
-  const message = `היי ${info.name}, נקבע לך תור אצל רמה ב${dateLabel} בשעה ${timeRange}. מצפים לראותך! 🙂`;
-  return `https://wa.me/${normalizePhoneForWhatsApp(info.phone)}?text=${encodeURIComponent(message)}`;
+function pad2(n) { return String(n).padStart(2, "0"); }
+function icsDateTime(dateStr, minutesOfDay) {
+  // floating local time, no timezone conversion - relies on viewer's device timezone
+  const [y, mo, d] = dateStr.split("-");
+  return `${y}${mo}${d}T${pad2(Math.floor(minutesOfDay / 60))}${pad2(minutesOfDay % 60)}00`;
+}
+function nowUtcStamp() {
+  const d = new Date();
+  return `${d.getUTCFullYear()}${pad2(d.getUTCMonth() + 1)}${pad2(d.getUTCDate())}T${pad2(d.getUTCHours())}${pad2(d.getUTCMinutes())}${pad2(d.getUTCSeconds())}Z`;
+}
+function buildGoogleCalendarLink(date, startMin, endMin) {
+  const start = icsDateTime(date, startMin);
+  const end = icsDateTime(date, endMin);
+  const text = encodeURIComponent("תור תספורת אצל רמה");
+  const details = encodeURIComponent("נקבע דרך תורמה");
+  return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${end}&details=${details}`;
+}
+function downloadIcsFile(date, startMin, endMin) {
+  const start = icsDateTime(date, startMin);
+  const end = icsDateTime(date, endMin);
+  const uid = `torama-${date}-${startMin}-${Date.now()}@torama`;
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Torama//Appointment//HE",
+    "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${nowUtcStamp()}`,
+    `DTSTART:${start}`,
+    `DTEND:${end}`,
+    "SUMMARY:תור תספורת אצל רמה",
+    "DESCRIPTION:נקבע דרך תורמה",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "torama-appointment.ics";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 function showToast(msg) {
   const el = document.getElementById("toast");
@@ -307,6 +359,12 @@ function confirmBooking(choice) {
   const fullKey = baseStart;
   const half1Key = baseStart + "-a";
   const half2Key = baseStart + "-b";
+  const baseMin = toMin(baseStart);
+  let startMin, endMin;
+  if (choice === "full") { startMin = baseMin; endMin = baseMin + SLOT_MINUTES; }
+  else if (choice === "half1") { startMin = baseMin; endMin = baseMin + HALF_MINUTES; }
+  else { startMin = baseMin + HALF_MINUTES; endMin = baseMin + SLOT_MINUTES; }
+
   const ref = db.ref(`days/${date}/bookings`);
   ref.transaction((current) => {
     current = current || {};
@@ -327,8 +385,8 @@ function confirmBooking(choice) {
       state.bookingSlot = null;
       render();
     } else {
-      showToast(`התור נקבע ל-${baseStart}, ${formatDateLong(date)}`);
       state.bookingSlot = null;
+      state.bookingConfirmation = { date, startMin, endMin };
       render();
     }
   }).catch(() => {
@@ -360,6 +418,24 @@ document.getElementById("brandIcon").addEventListener("click", () => {
 function render() {
   const app = document.getElementById("app");
   const today = todayStr();
+
+  const modalOverlay = document.getElementById("confirmModalOverlay");
+  if (state.bookingConfirmation) {
+    const { date, startMin, endMin } = state.bookingConfirmation;
+    const timeRange = `${toHHMM(startMin)}–${toHHMM(endMin)}`;
+    document.getElementById("confirmModalDetails").textContent = `${formatDateLong(date)}, בשעה ${timeRange}`;
+    document.getElementById("confirmModalGoogleBtn").href = buildGoogleCalendarLink(date, startMin, endMin);
+    document.getElementById("confirmModalIcsBtn").onclick = () => downloadIcsFile(date, startMin, endMin);
+    document.getElementById("confirmModalCloseBtn").onclick = () => {
+      state.bookingConfirmation = null;
+      render();
+    };
+    modalOverlay.classList.remove("hidden");
+    modalOverlay.classList.add("flex");
+  } else {
+    modalOverlay.classList.add("hidden");
+    modalOverlay.classList.remove("flex");
+  }
 
   const adminBtn = document.getElementById("adminToggleBtn");
   if (state.mode === "admin") {
@@ -457,7 +533,6 @@ function render() {
                               <span class="font-mono shrink-0">${label}</span>
                               <span class="flex items-center gap-1.5 flex-1 justify-end min-w-0">
                                 <span class="text-sm font-medium text-stone-700 truncate">${escapeHtml(info.name)} · ${escapeHtml(info.phone)}</span>
-                                <a href="${buildWhatsAppLink(date, slot, info)}" target="_blank" rel="noopener" class="text-stone-400 hover:text-green-600 shrink-0" title="שלח אישור בוואטסאפ">💬</a>
                                 <button data-delete-booking="${date}|${slot}" data-booking-name="${escapeHtml(info.name)}" class="text-stone-300 hover:text-red-600 shrink-0" title="מחק תור">🗑</button>
                               </span>
                             </li>`;}).join("")}
