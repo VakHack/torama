@@ -138,13 +138,20 @@ function generateSlots(day) {
   const lunchEndHour = day.lunchEnd || "14:00";
   const start = toMin(startHour);
   const end = toMin(endHour);
-  const lunchStart = toMin(lunchStartHour);
-  const lunchEnd = toMin(lunchEndHour);
-  for (let t = start; t + SLOT_MINUTES <= end; t += SLOT_MINUTES) {
-    const slotEnd = t + SLOT_MINUTES;
-    if (t < lunchEnd && slotEnd > lunchStart) continue; // skip any slot that overlaps the lunch break at all
-    slots.push(toHHMM(t));
+  let lunchStart = toMin(lunchStartHour);
+  let lunchEnd = toMin(lunchEndHour);
+  // clamp the lunch window to fall within the working day
+  lunchStart = Math.max(lunchStart, start);
+  lunchEnd = Math.min(lunchEnd, end);
+  if (lunchEnd <= lunchStart) {
+    // no valid lunch break within the day - treat it as one continuous block
+    for (let t = start; t + SLOT_MINUTES <= end; t += SLOT_MINUTES) slots.push(toHHMM(t));
+    return slots;
   }
+  // morning block: grid starts at the day's start hour, up to the lunch break
+  for (let t = start; t + SLOT_MINUTES <= lunchStart; t += SLOT_MINUTES) slots.push(toHHMM(t));
+  // afternoon block: grid restarts exactly at the end of the lunch break
+  for (let t = lunchEnd; t + SLOT_MINUTES <= end; t += SLOT_MINUTES) slots.push(toHHMM(t));
   return slots;
 }
 /* Returns the booking status of a base 40-min slot, given the day's bookings object */
