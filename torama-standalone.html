@@ -37,15 +37,13 @@
 <header class="border-b-2 border-orange-200 bg-white sticky top-0 z-10">
   <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <img id="brandIcon" alt="רמה" class="w-20 h-20 rounded-full object-cover border-2 border-orange-300 shrink-0" />
+      <img id="brandIcon" alt="רמה" class="w-20 h-20 rounded-full object-cover border-2 border-orange-300 shrink-0 cursor-pointer" />
       <div>
         <h1 class="font-bold text-2xl text-orange-900 leading-tight">תורמה</h1>
         <p class="text-lg text-orange-700/80 leading-tight">תורים ליום תספורות אצל רמה</p>
       </div>
     </div>
-    <button id="adminToggleBtn" class="text-sm text-stone-400 hover:text-orange-800 flex items-center gap-1 shrink-0">
-      🔒 ניהול
-    </button>
+    <button id="adminToggleBtn" class="hidden text-sm text-stone-400 hover:text-orange-800 flex items-center gap-1 shrink-0"></button>
   </div>
 </header>
 
@@ -249,9 +247,10 @@ function exitAdmin() {
 }
 
 document.getElementById("adminToggleBtn").addEventListener("click", () => {
-  if (state.mode === "admin") {
-    exitAdmin();
-  } else {
+  exitAdmin();
+});
+document.getElementById("brandIcon").addEventListener("click", () => {
+  if (state.mode !== "admin") {
     state.mode = "pinGate";
     render();
   }
@@ -262,8 +261,14 @@ function render() {
   const app = document.getElementById("app");
   const today = todayStr();
 
-  document.getElementById("adminToggleBtn").innerHTML =
-    state.mode === "admin" ? "✕ יציאה מניהול" : "🔒 ניהול";
+  const adminBtn = document.getElementById("adminToggleBtn");
+  if (state.mode === "admin") {
+    adminBtn.classList.remove("hidden");
+    adminBtn.innerHTML = "✕ יציאה מניהול";
+  } else {
+    adminBtn.classList.add("hidden");
+    adminBtn.innerHTML = "";
+  }
 
   if (state.mode === "pinGate") {
     app.innerHTML = `
