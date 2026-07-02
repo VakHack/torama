@@ -4,14 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Torama</title>
-
-<!-- PWA: מאפשר "הוסף למסך הבית" / התקנה כאפליקציה -->
-<link rel="manifest" href="manifest.json" />
 <link rel="icon" href="icon-192.png" />
-<link rel="apple-touch-icon" href="icon-192.png" />
-<meta name="theme-color" content="#9a3412" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-title" content="תורמה" />
 <meta name="description" content="תורים ליום תספורות אצל רמה" />
 
 <meta property="og:title" content="Torama" />
@@ -293,6 +286,7 @@ function checkPin() {
   if (val === state.config.pin) {
     state.mode = "admin";
     state.pinError = "";
+    try { localStorage.setItem("toramaAdminAuthed", "true"); } catch {}
   } else {
     state.pinError = "קוד שגוי";
   }
@@ -422,7 +416,9 @@ document.getElementById("adminToggleBtn").addEventListener("click", () => {
 });
 document.getElementById("brandIcon").addEventListener("click", () => {
   if (state.mode !== "admin") {
-    state.mode = "pinGate";
+    let cached = false;
+    try { cached = localStorage.getItem("toramaAdminAuthed") === "true"; } catch {}
+    state.mode = cached ? "admin" : "pinGate";
     render();
   }
 });
@@ -704,10 +700,6 @@ function render() {
 }
 
 render();
-
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js").catch(() => {});
-}
 </script>
 </body>
 </html>
