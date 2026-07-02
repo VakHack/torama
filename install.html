@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>התקנת Torama</title>
+
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="theme-color" content="#9a3412" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="תורמה" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+</style>
+</head>
+<body class="min-h-screen bg-orange-50 text-stone-800 flex items-center justify-center p-4">
+
+<div class="max-w-sm w-full bg-white rounded-xl border-2 border-orange-300 p-6 text-center">
+  <img src="icon-192.png" alt="רמה" class="w-20 h-20 rounded-full object-cover border-2 border-orange-300 mx-auto mb-4" />
+  <h1 class="font-bold text-2xl text-orange-900 mb-1">תוֹרָמָה</h1>
+  <p class="text-stone-500 mb-5">התקנת האפליקציה למסך הבית</p>
+
+  <button id="installBtn" class="hidden w-full bg-orange-800 text-white rounded-lg py-3 font-medium hover:bg-orange-900 transition mb-3">📲 התקן עכשיו</button>
+
+  <div id="manualInstructions" class="text-sm text-stone-600 text-right bg-orange-50 rounded-lg p-4 mb-4 space-y-2">
+    <p class="font-medium text-orange-900">אם הכפתור לא מופיע, התקינו ידנית:</p>
+    <p>📱 <b>אנדרואיד (כרום):</b> תפריט ⋮ ← "התקן אפליקציה"</p>
+    <p>🍎 <b>אייפון (ספארי):</b> כפתור השיתוף ⬆️ ← "הוסף למסך הבית"</p>
+    <p>💻 <b>מחשב (כרום/אדג'):</b> אייקון ההתקנה בשורת הכתובת, או תפריט ⋮ ← "התקן"</p>
+    <p>🦊 <b>פיירפוקס (מחשב):</b> לא נתמך על ידי הדפדפן, אפשר לשמור כסימניה</p>
+  </div>
+
+  <a href="torama-standalone.html" class="block w-full bg-stone-200 text-stone-700 rounded-lg py-3 font-medium hover:bg-stone-300 transition">המשך לאפליקציה בלי התקנה ←</a>
+</div>
+
+<script>
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById("installBtn").classList.remove("hidden");
+});
+
+document.getElementById("installBtn").addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById("installBtn").classList.add("hidden");
+});
+
+window.addEventListener("appinstalled", () => {
+  window.location.href = "torama-standalone.html";
+});
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>
