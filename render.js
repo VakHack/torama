@@ -8,7 +8,6 @@ function render() {
         <div class="w-8 h-8 border-4 border-orange-200 border-t-orange-700 rounded-full animate-spin mb-3"></div>
         <p class="text-sm">טוען נתונים...</p>
       </div>`;
-    document.getElementById("adminToggleBtn").style.display = "none";
     return;
   }
 
@@ -28,15 +27,6 @@ function render() {
   } else {
     modalOverlay.classList.add("hidden");
     modalOverlay.classList.remove("flex");
-  }
-
-  const adminBtn = document.getElementById("adminToggleBtn");
-  if (state.mode === "admin") {
-    adminBtn.style.display = "flex";
-    adminBtn.innerHTML = "✕ יציאה מניהול";
-  } else {
-    adminBtn.style.display = "none";
-    adminBtn.innerHTML = "";
   }
 
   if (state.mode === "pinGate") {
@@ -222,11 +212,25 @@ function render() {
             const full = bookings[baseStart];
             const h1 = bookings[baseStart + "-a"];
             const h2 = bookings[baseStart + "-b"];
-            const occupantName = full ? full.name : [h1 && h1.name, h2 && h2.name].filter(Boolean).join(" / ");
-            return `<div class="rounded-lg py-2 px-3 text-sm border bg-stone-100 text-stone-400 border-stone-100 flex justify-between">
-                      <span class="font-mono">${baseStart}–${toHHMM(toMin(baseStart) + SLOT_MINUTES)}</span>
-                      <span>${escapeHtml(occupantName)}</span>
-                    </div>`;
+            if (full) {
+              // a single booking taking the whole 40-minute slot
+              return `<div class="rounded-lg py-2 px-3 text-sm border bg-stone-100 text-stone-400 border-stone-100 flex justify-between">
+                        <span class="font-mono">${baseStart}–${toHHMM(toMin(baseStart) + SLOT_MINUTES)}</span>
+                        <span>${escapeHtml(full.name)}</span>
+                      </div>`;
+            }
+            // two separate half-bookings - show as two adjacent boxes, matching how they were actually booked
+            return `
+              <div class="flex gap-2">
+                <div class="flex-1 rounded-lg py-2 px-3 text-sm border bg-stone-100 text-stone-400 border-stone-100 text-center break-words leading-tight">
+                  <div class="font-mono text-xs">${halfLabel(baseStart, 1)}</div>
+                  <div>${escapeHtml(h1 ? h1.name : "")}</div>
+                </div>
+                <div class="flex-1 rounded-lg py-2 px-3 text-sm border bg-stone-100 text-stone-400 border-stone-100 text-center break-words leading-tight">
+                  <div class="font-mono text-xs">${halfLabel(baseStart, 2)}</div>
+                  <div>${escapeHtml(h2 ? h2.name : "")}</div>
+                </div>
+              </div>`;
           }
           if (status === "open") {
             const cls = isSelected ? "bg-orange-800 text-white border-orange-800" : "border-stone-300 text-stone-700 hover:border-orange-700";
@@ -234,12 +238,16 @@ function render() {
           }
           // half1open or half2open: one half is taken, the other is bookable as a half only (no further splitting)
           const openWhich = status === "half2open" ? 2 : 1;
+          const occupiedWhich = openWhich === 1 ? 2 : 1;
           const occupiedInfo = status === "half2open" ? bookings[baseStart + "-a"] : bookings[baseStart + "-b"];
           const label = halfLabel(baseStart, openWhich);
           const cls = isSelected ? "bg-orange-800 text-white border-orange-800" : "border-stone-300 text-stone-700 hover:border-orange-700";
           return `
             <div class="flex gap-2">
-              <div class="flex-1 rounded-lg py-2 px-3 text-sm border bg-stone-100 text-stone-400 border-stone-100 text-center break-words leading-tight">${escapeHtml(occupiedInfo ? occupiedInfo.name : "תפוס")}</div>
+              <div class="flex-1 rounded-lg py-2 px-3 text-sm border bg-stone-100 text-stone-400 border-stone-100 text-center break-words leading-tight">
+                <div class="font-mono text-xs">${halfLabel(baseStart, occupiedWhich)}</div>
+                <div>${escapeHtml(occupiedInfo ? occupiedInfo.name : "")}</div>
+              </div>
               <button data-base="${baseStart}" data-choice="${openWhich === 1 ? "half1only" : "half2only"}" class="flex-1 rounded-lg py-2 px-3 text-sm font-mono border transition ${cls}">${label} (חצי תור)</button>
             </div>`;
         }).join("")}
