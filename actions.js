@@ -7,7 +7,7 @@ function checkPin() {
   } else {
     state.pinError = "קוד שגוי";
   }
-  render(); 
+  render();
 }
 
 function openDay() {
@@ -133,11 +133,13 @@ function exitAdmin() {
 }
 
 document.getElementById("brandIcon").addEventListener("click", () => {
-  if (state.mode !== "admin") {
-    let cached = false;
-    try { cached = localStorage.getItem("toramaAdminAuthed") === "true"; } catch {}
-    state.mode = cached ? "admin" : "pinGate";
-    render();
+  if (state.mode === "admin") {
+    exitAdmin();
+    return;
   }
+  let cached = false;
+  try { cached = localStorage.getItem("toramaAdminAuthed") === "true"; } catch {}
+  state.mode = cached ? "admin" : "pinGate";
+  render();
 });
 
