@@ -26,13 +26,12 @@ function saveDayAddress(date, address) {
     .catch(() => showToast("שמירת הכתובת נכשלה"));
 }
 
-/* קטע ה-HTML שמוצג ללקוח בתחתית מסך היום, אם יש כתובת */
+/* קטע ה-HTML שמוצג ללקוח ליד כותרת התאריך, אם יש כתובת */
 function renderClientAddressSection(day) {
   if (!day.address) return "";
   return `
     <a href="${buildGoogleMapsSearchLink(day.address)}" target="_blank" rel="noopener"
-       class="block mt-4 bg-white border border-stone-200 rounded-xl p-4 hover:border-orange-700 transition text-center">
-      <span class="text-orange-800 font-medium">📍 ${escapeHtml(day.address)}</span>
-      <div class="text-xs text-stone-400 mt-1">לחץ/י לפתיחה בגוגל מפות</div>
+       class="inline-flex items-center gap-1 text-sm text-orange-800 hover:text-orange-900 underline mb-3">
+      📍 ${escapeHtml(day.address)}
     </a>`;
 }
