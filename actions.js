@@ -16,10 +16,14 @@ function openDay() {
   const endHour = document.getElementById("newEnd").value;
   const lunchStart = document.getElementById("newLunchStart").value;
   const lunchEnd = document.getElementById("newLunchEnd").value;
+  const address = document.getElementById("newAddress").value.trim();
   if (!date) { showToast("נא לבחור תאריך"); return; }
   if (toMin(endHour) <= toMin(startHour)) { showToast("שעת הסיום חייבת להיות אחרי שעת ההתחלה"); return; }
-  db.ref("days/" + date).update({ startHour, endHour, lunchStart, lunchEnd, active: true })
-    .then(() => showToast(`היום ${formatDateLong(date)} נפתח לקביעת תורים`))
+  db.ref("days/" + date).update({ startHour, endHour, lunchStart, lunchEnd, address, active: true })
+    .then(() => {
+      showToast(`היום ${formatDateLong(date)} נפתח לקביעת תורים`);
+      if (address) db.ref("config/lastAddress").set(address);
+    })
     .catch(() => showToast("שמירה נכשלה"));
 }
 
