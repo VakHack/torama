@@ -157,7 +157,6 @@ function render() {
   if (!state.selectedDate) {
     const activeUpcoming = Object.keys(state.days).filter((d) => state.days[d].active && d >= today).sort();
     app.innerHTML = `
-      <p class="text-sm text-stone-500 mb-2">ימים פנויים לקביעת תור:</p>
       ${activeUpcoming.length === 0 ? `
         <div class="bg-white rounded-xl border border-stone-200 p-6 text-center text-stone-400 text-sm">
           אין כרגע ימים פתוחים לקביעת תורים. נסה/י שוב בהמשך.
