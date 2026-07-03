@@ -6,14 +6,6 @@ function buildGoogleMapsSearchLink(address) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
 
-/* פותח חיפוש בגוגל מפות עבור הטקסט הנוכחי בשדה הכתובת, כדי שהמנהל יוכל
-   לאתר את הכתובת המדויקת שם ואז להעתיק/להקליד אותה בשדה */
-function openMapsSearchForInput(inputId) {
-  const el = document.getElementById(inputId);
-  const query = el && el.value.trim() ? el.value.trim() : "";
-  window.open(buildGoogleMapsSearchLink(query || "כתובת"), "_blank");
-}
-
 /* שומר כתובת ליום קיים (עריכה בדיעבד מפאנל הניהול), ומעדכן גם את
    "הכתובת האחרונה" שתוצע כברירת מחדל בפעם הבאה שפותחים יום חדש */
 function saveDayAddress(date, address) {
