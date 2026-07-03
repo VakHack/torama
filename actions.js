@@ -7,7 +7,7 @@ function checkPin() {
   } else {
     state.pinError = "קוד שגוי";
   }
-  render();
+  render(); 
 }
 
 function openDay() {
