@@ -83,11 +83,7 @@ function render() {
             </div>
             <div>
               <label class="block text-xs text-stone-500 mb-1">📍 כתובת (אופציונלי)</label>
-              <div class="flex gap-2">
-                <input id="newAddress" type="text" value="${escapeHtml(state.config.lastAddress || "")}" placeholder="לדוגמה: הרצל 10, תל אביב" class="flex-1 border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
-                <button type="button" id="newAddressMapsBtn" class="shrink-0 bg-stone-200 text-stone-700 rounded-lg px-3 hover:bg-stone-300 transition" title="בדוק את הכתובת במפות (לא ממלא אוטומטית, רק לאימות)">🗺️</button>
-              </div>
-              <p class="text-xs text-stone-400 mt-1">הקלד/י כתובת, ואפשר ללחוץ על 🗺️ כדי לוודא אותה במפות (לא ממלא אוטומטית)</p>
+              <input id="newAddress" type="text" value="${escapeHtml(state.config.lastAddress || "")}" placeholder="לדוגמה: הרצל 10, תל אביב" class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
             </div>
             <button id="openDayBtn" class="w-full bg-orange-800 text-white rounded-lg py-2 font-medium hover:bg-orange-900 transition">פתח יום לקביעת תורים</button>
           </div>
@@ -120,7 +116,6 @@ function render() {
                         <label class="block text-xs text-stone-500 mb-1">📍 כתובת</label>
                         <div class="flex gap-2">
                           <input id="addr-input-${date}" type="text" value="${escapeHtml(day.address || "")}" placeholder="לדוגמה: הרצל 10, תל אביב" class="flex-1 border border-stone-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-700" />
-                          <button data-maps-search="addr-input-${date}" type="button" class="shrink-0 bg-stone-200 text-stone-700 rounded-lg px-2 text-sm hover:bg-stone-300 transition" title="בדוק את הכתובת במפות (לא ממלא אוטומטית, רק לאימות)">🗺️</button>
                           <button data-save-address="${date}" type="button" class="shrink-0 bg-orange-800 text-white rounded-lg px-3 text-sm hover:bg-orange-900 transition">שמור</button>
                         </div>
                       </div>
@@ -154,7 +149,6 @@ function render() {
 
     document.getElementById("exitAdminBtn2").addEventListener("click", exitAdmin);
     document.getElementById("openDayBtn").addEventListener("click", openDay);
-    document.getElementById("newAddressMapsBtn").addEventListener("click", () => openMapsSearchForInput("newAddress"));
     document.getElementById("savePinBtn").addEventListener("click", savePin);
     app.querySelectorAll("[data-toggle-date]").forEach((el) =>
       el.addEventListener("click", () => toggleAdminDate(el.getAttribute("data-toggle-date"))));
@@ -168,8 +162,6 @@ function render() {
         const [d, slotKey] = el.getAttribute("data-delete-booking").split("|");
         deleteBooking(d, slotKey, el.getAttribute("data-booking-name"));
       }));
-    app.querySelectorAll("[data-maps-search]").forEach((el) =>
-      el.addEventListener("click", () => openMapsSearchForInput(el.getAttribute("data-maps-search"))));
     app.querySelectorAll("[data-save-address]").forEach((el) =>
       el.addEventListener("click", () => {
         const d = el.getAttribute("data-save-address");
