@@ -110,14 +110,16 @@ function nowUtcStamp() {
   const d = new Date();
   return `${d.getUTCFullYear()}${pad2(d.getUTCMonth() + 1)}${pad2(d.getUTCDate())}T${pad2(d.getUTCHours())}${pad2(d.getUTCMinutes())}${pad2(d.getUTCSeconds())}Z`;
 }
-function buildGoogleCalendarLink(date, startMin, endMin) {
+function buildGoogleCalendarLink(date, startMin, endMin, address) {
   const start = icsDateTime(date, startMin);
   const end = icsDateTime(date, endMin);
   const text = encodeURIComponent("תור תספורת אצל רמה");
   const details = encodeURIComponent("נקבע דרך תורמה");
-  return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${end}&details=${details}`;
+  let url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${end}&details=${details}`;
+  if (address) url += `&location=${encodeURIComponent(address)}`;
+  return url;
 }
-function downloadIcsFile(date, startMin, endMin) {
+function downloadIcsFile(date, startMin, endMin, address) {
   const start = icsDateTime(date, startMin);
   const end = icsDateTime(date, endMin);
   const uid = `torama-${date}-${startMin}-${Date.now()}@torama`;
@@ -132,6 +134,12 @@ function downloadIcsFile(date, startMin, endMin) {
     `DTEND:${end}`,
     "SUMMARY:תור תספורת אצל רמה",
     "DESCRIPTION:נקבע דרך תורמה",
+    ...(address ? [`LOCATION:${address}`] : []),
+    "BEGIN:VALARM",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:תזכורת - תור תספורת אצל רמה מחר",
+    "TRIGGER:-P1D",
+    "END:VALARM",
     "END:VEVENT",
     "END:VCALENDAR",
   ].join("\r\n");
