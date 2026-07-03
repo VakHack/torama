@@ -128,9 +128,6 @@ function exitAdmin() {
   render();
 }
 
-document.getElementById("adminToggleBtn").addEventListener("click", () => {
-  exitAdmin();
-});
 document.getElementById("brandIcon").addEventListener("click", () => {
   if (state.mode !== "admin") {
     let cached = false;
