@@ -14,10 +14,11 @@ function render() {
   const modalOverlay = document.getElementById("confirmModalOverlay");
   if (state.bookingConfirmation) {
     const { date, startMin, endMin } = state.bookingConfirmation;
+    const address = (state.days[date] && state.days[date].address) || "";
     const timeRange = `${toHHMM(startMin)}–${toHHMM(endMin)}`;
     document.getElementById("confirmModalDetails").textContent = `${formatDateLong(date)}, בשעה ${timeRange}`;
-    document.getElementById("confirmModalGoogleBtn").href = buildGoogleCalendarLink(date, startMin, endMin);
-    document.getElementById("confirmModalIcsBtn").onclick = () => downloadIcsFile(date, startMin, endMin);
+    document.getElementById("confirmModalGoogleBtn").href = buildGoogleCalendarLink(date, startMin, endMin, address);
+    document.getElementById("confirmModalIcsBtn").onclick = () => downloadIcsFile(date, startMin, endMin, address);
     document.getElementById("confirmModalCloseBtn").onclick = () => {
       state.bookingConfirmation = null;
       render();
@@ -80,6 +81,13 @@ function render() {
                 <input id="newLunchEnd" type="time" value="14:00" class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
               </div>
             </div>
+            <div>
+              <label class="block text-xs text-stone-500 mb-1">📍 כתובת (אופציונלי)</label>
+              <div class="flex gap-2">
+                <input id="newAddress" type="text" value="${escapeHtml(state.config.lastAddress || "")}" placeholder="לדוגמה: הרצל 10, תל אביב" class="flex-1 border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
+                <button type="button" id="newAddressMapsBtn" class="shrink-0 bg-stone-200 text-stone-700 rounded-lg px-3 hover:bg-stone-300 transition" title="חפש בגוגל מפות">🗺️</button>
+              </div>
+            </div>
             <button id="openDayBtn" class="w-full bg-orange-800 text-white rounded-lg py-2 font-medium hover:bg-orange-900 transition">פתח יום לקביעת תורים</button>
           </div>
         </section>
@@ -106,7 +114,15 @@ function render() {
                     </div>
                   </div>
                   ${expanded ? `
-                    <div class="border-t border-stone-100 px-3 py-2 bg-orange-50">
+                    <div class="border-t border-stone-100 px-3 py-2 bg-orange-50 space-y-3">
+                      <div>
+                        <label class="block text-xs text-stone-500 mb-1">📍 כתובת</label>
+                        <div class="flex gap-2">
+                          <input id="addr-input-${date}" type="text" value="${escapeHtml(day.address || "")}" placeholder="לדוגמה: הרצל 10, תל אביב" class="flex-1 border border-stone-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-700" />
+                          <button data-maps-search="addr-input-${date}" type="button" class="shrink-0 bg-stone-200 text-stone-700 rounded-lg px-2 text-sm hover:bg-stone-300 transition" title="חפש בגוגל מפות">🗺️</button>
+                          <button data-save-address="${date}" type="button" class="shrink-0 bg-orange-800 text-white rounded-lg px-3 text-sm hover:bg-orange-900 transition">שמור</button>
+                        </div>
+                      </div>
                       ${count === 0 ? `<p class="text-xs text-stone-400">אין עדיין תורים קבועים ליום זה.</p>` : `
                         <ul class="space-y-1.5">
                           ${Object.entries(bookings).sort((a,b) => bookingKeySortMin(a[0]) - bookingKeySortMin(b[0])).map(([slot, info]) => {
@@ -137,6 +153,7 @@ function render() {
 
     document.getElementById("exitAdminBtn2").addEventListener("click", exitAdmin);
     document.getElementById("openDayBtn").addEventListener("click", openDay);
+    document.getElementById("newAddressMapsBtn").addEventListener("click", () => openMapsSearchForInput("newAddress"));
     document.getElementById("savePinBtn").addEventListener("click", savePin);
     app.querySelectorAll("[data-toggle-date]").forEach((el) =>
       el.addEventListener("click", () => toggleAdminDate(el.getAttribute("data-toggle-date"))));
@@ -149,6 +166,14 @@ function render() {
         e.stopPropagation();
         const [d, slotKey] = el.getAttribute("data-delete-booking").split("|");
         deleteBooking(d, slotKey, el.getAttribute("data-booking-name"));
+      }));
+    app.querySelectorAll("[data-maps-search]").forEach((el) =>
+      el.addEventListener("click", () => openMapsSearchForInput(el.getAttribute("data-maps-search"))));
+    app.querySelectorAll("[data-save-address]").forEach((el) =>
+      el.addEventListener("click", () => {
+        const d = el.getAttribute("data-save-address");
+        const addr = document.getElementById("addr-input-" + d).value;
+        saveDayAddress(d, addr);
       }));
     return;
   }
@@ -267,6 +292,7 @@ function render() {
           `}
         </div>
       </div>` : ""}
+    ${renderClientAddressSection(day)}
   `;
   document.getElementById("backBtn").addEventListener("click", backToList);
   app.querySelectorAll("[data-base]").forEach((el) =>
