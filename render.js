@@ -85,8 +85,9 @@ function render() {
               <label class="block text-xs text-stone-500 mb-1">📍 כתובת (אופציונלי)</label>
               <div class="flex gap-2">
                 <input id="newAddress" type="text" value="${escapeHtml(state.config.lastAddress || "")}" placeholder="לדוגמה: הרצל 10, תל אביב" class="flex-1 border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
-                <button type="button" id="newAddressMapsBtn" class="shrink-0 bg-stone-200 text-stone-700 rounded-lg px-3 hover:bg-stone-300 transition" title="חפש בגוגל מפות">🗺️</button>
+                <button type="button" id="newAddressMapsBtn" class="shrink-0 bg-stone-200 text-stone-700 rounded-lg px-3 hover:bg-stone-300 transition" title="בדוק את הכתובת במפות (לא ממלא אוטומטית, רק לאימות)">🗺️</button>
               </div>
+              <p class="text-xs text-stone-400 mt-1">הקלד/י כתובת, ואפשר ללחוץ על 🗺️ כדי לוודא אותה במפות (לא ממלא אוטומטית)</p>
             </div>
             <button id="openDayBtn" class="w-full bg-orange-800 text-white rounded-lg py-2 font-medium hover:bg-orange-900 transition">פתח יום לקביעת תורים</button>
           </div>
@@ -119,7 +120,7 @@ function render() {
                         <label class="block text-xs text-stone-500 mb-1">📍 כתובת</label>
                         <div class="flex gap-2">
                           <input id="addr-input-${date}" type="text" value="${escapeHtml(day.address || "")}" placeholder="לדוגמה: הרצל 10, תל אביב" class="flex-1 border border-stone-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-700" />
-                          <button data-maps-search="addr-input-${date}" type="button" class="shrink-0 bg-stone-200 text-stone-700 rounded-lg px-2 text-sm hover:bg-stone-300 transition" title="חפש בגוגל מפות">🗺️</button>
+                          <button data-maps-search="addr-input-${date}" type="button" class="shrink-0 bg-stone-200 text-stone-700 rounded-lg px-2 text-sm hover:bg-stone-300 transition" title="בדוק את הכתובת במפות (לא ממלא אוטומטית, רק לאימות)">🗺️</button>
                           <button data-save-address="${date}" type="button" class="shrink-0 bg-orange-800 text-white rounded-lg px-3 text-sm hover:bg-orange-900 transition">שמור</button>
                         </div>
                       </div>
@@ -206,7 +207,7 @@ function render() {
               <button data-select-date="${date}" class="w-full bg-white border border-stone-200 rounded-xl p-4 flex items-center justify-between hover:border-orange-700 transition text-right">
                 <div>
                   <p class="font-medium text-stone-800">${formatDateLong(date)}</p>
-                  <p class="text-xs text-stone-400 mt-0.5">${day.startHour}–${day.endHour} · ${availabilityText}</p>
+                  <p class="text-xs text-stone-400 mt-0.5">${day.startHour}–${day.endHour}${day.address ? ` · 📍 ${escapeHtml(day.address)}` : ""} · ${availabilityText}</p>
                 </div>
                 <span class="text-stone-300">‹</span>
               </button>`;
@@ -226,7 +227,8 @@ function render() {
   app.innerHTML = `
     <button id="backBtn" class="text-sm text-orange-800 flex items-center gap-1 mb-2">‹ חזרה לרשימת הימים</button>
     <div class="bg-white rounded-xl border border-stone-200 p-4">
-      <h2 class="font-bold text-orange-900 mb-3">🕐 ${formatDateLong(state.selectedDate)}</h2>
+      <h2 class="font-bold text-orange-900 mb-1">🕐 ${formatDateLong(state.selectedDate)}</h2>
+      ${renderClientAddressSection(day)}
       <div class="space-y-2">
         ${slots.map((baseStart) => {
           const status = getSlotStatus(baseStart, bookings).state;
@@ -292,7 +294,6 @@ function render() {
           `}
         </div>
       </div>` : ""}
-    ${renderClientAddressSection(day)}
   `;
   document.getElementById("backBtn").addEventListener("click", backToList);
   app.querySelectorAll("[data-base]").forEach((el) =>
