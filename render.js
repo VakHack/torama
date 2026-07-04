@@ -198,9 +198,9 @@ function render() {
             return `
               <button data-select-date="${date}" class="w-full bg-white border border-stone-200 rounded-xl p-4 flex items-center justify-between gap-3 hover:border-orange-700 transition text-right">
                 <div class="flex-1 space-y-0.5">
-                  <p class="font-medium text-stone-800 flex items-center gap-1.5"><span class="inline-block w-4 text-center shrink-0">📅</span>${formatDateLong(date)}</p>
-                  <p class="text-xs text-stone-400 flex items-center gap-1.5"><span class="inline-block w-4 text-center shrink-0">🕐</span>${day.startHour}–${day.endHour} · ${availabilityText}</p>
-                  ${day.address ? `<p class="text-xs text-stone-300 flex items-center gap-1.5"><span class="inline-block w-4 text-center shrink-0">📍</span>${escapeHtml(day.address)}</p>` : ""}
+                  <p class="font-medium text-stone-800">${formatDateLong(date)}</p>
+                  <p class="text-xs text-stone-400">${day.startHour}–${day.endHour} · ${availabilityText}</p>
+                  ${day.address ? `<p class="text-xs text-stone-300">${escapeHtml(day.address)}</p>` : ""}
                 </div>
                 <span class="shrink-0 w-8 h-8 rounded-lg bg-orange-50 text-orange-700 flex items-center justify-center text-base">←</span>
               </button>`;
