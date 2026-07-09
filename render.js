@@ -98,6 +98,7 @@ function render() {
               const bookings = day.bookings || {};
               const count = Object.keys(bookings).length;
               const expanded = state.expandedAdminDate === date;
+              const isPast = date < today;
               return `
                 <div class="border border-stone-200 rounded-lg overflow-hidden">
                   <div class="flex items-center justify-between px-3 py-2">
@@ -106,7 +107,10 @@ function render() {
                       <p class="text-xs text-stone-400">${day.startHour}–${day.endHour} · הפסקה ${day.lunchStart}-${day.lunchEnd} · 👥 ${count}</p>
                     </button>
                     <div class="flex items-center gap-2 shrink-0">
-                      <button data-toggle-active="${date}" class="text-xs px-2 py-1 rounded-full ${day.active ? "bg-orange-100 text-orange-800" : "bg-stone-100 text-stone-500"}">${day.active ? "פתוח" : "סגור"}</button>
+                      ${isPast
+                        ? `<span class="text-xs px-2 py-1 rounded-full bg-stone-100 text-stone-400" title="יום עבר - נסגר אוטומטית">סגור (עבר)</span>`
+                        : `<button data-toggle-active="${date}" class="text-xs px-2 py-1 rounded-full ${day.active ? "bg-orange-100 text-orange-800" : "bg-stone-100 text-stone-500"}">${day.active ? "פתוח" : "סגור"}</button>`
+                      }
                       <button data-delete-date="${date}" class="text-stone-300 hover:text-red-600">🗑</button>
                     </div>
                   </div>
@@ -304,4 +308,3 @@ function render() {
     confirmBooking(which);
   });
 }
-
