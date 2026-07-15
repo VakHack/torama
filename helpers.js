@@ -1,6 +1,8 @@
 const DEFAULT_PIN = "1234";
 const SLOT_MINUTES = 40;
 const HALF_MINUTES = 20;
+const HOLD_DURATION_MS = 5 * 60 * 1000; // 5 minutes to fill in name+phone before a hold expires
+const SESSION_ID = "s" + Date.now() + "-" + Math.random().toString(36).slice(2);
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 const HEBREW_MONTHS = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
 
@@ -11,6 +13,8 @@ let state = {
   selectedDate: null,
   bookingSlot: null, // { baseStart, availableChoice: 'both' | 'half1only' | 'half2only' }
   bookingConfirmation: null, // { date, startMin, endMin }
+  bookName: "",
+  bookPhone: "",
   loaded: { config: false, days: false },
   bookingError: "",
   expandedAdminDate: null,
@@ -59,13 +63,19 @@ function generateSlots(day) {
   return slots;
 }
 /* Returns the booking status of a base 40-min slot, given the day's bookings object */
+/* מחזיר true אם הערך תפוס בפועל (הזמנה אמיתית, או "החזקה" זמנית שעדיין בתוקף) */
+function isEntryActive(entry) {
+  if (!entry) return false;
+  if (!entry.pending) return true; // real booking
+  return entry.expiresAt > Date.now(); // temporary hold - only counts if not expired
+}
 function getSlotStatus(baseStart, bookings) {
   const fullKey = baseStart;
   const half1Key = baseStart + "-a";
   const half2Key = baseStart + "-b";
-  const fullBooked = !!bookings[fullKey];
-  const half1Booked = !!bookings[half1Key];
-  const half2Booked = !!bookings[half2Key];
+  const fullBooked = isEntryActive(bookings[fullKey]);
+  const half1Booked = isEntryActive(bookings[half1Key]);
+  const half2Booked = isEntryActive(bookings[half2Key]);
   if (fullBooked || (half1Booked && half2Booked)) return { state: "full" };
   if (half1Booked) return { state: "half2open" };
   if (half2Booked) return { state: "half1open" };
@@ -164,4 +174,3 @@ function escapeHtml(str) {
   div.textContent = str;
   return div.innerHTML;
 }
-
