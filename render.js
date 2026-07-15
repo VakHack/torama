@@ -96,7 +96,7 @@ function render() {
             ${allDates.map((date) => {
               const day = state.days[date];
               const bookings = day.bookings || {};
-              const count = Object.keys(bookings).length;
+              const count = Object.values(bookings).filter((b) => !b.pending).length;
               const expanded = state.expandedAdminDate === date;
               const isPast = date < today;
               return `
@@ -125,7 +125,7 @@ function render() {
                       </div>
                       ${count === 0 ? `<p class="text-xs text-stone-400">אין עדיין תורים קבועים ליום זה.</p>` : `
                         <ul class="space-y-1.5">
-                          ${Object.entries(bookings).sort((a,b) => bookingKeySortMin(a[0]) - bookingKeySortMin(b[0])).map(([slot, info]) => {
+                          ${Object.entries(bookings).filter(([, info]) => !info.pending).sort((a,b) => bookingKeySortMin(a[0]) - bookingKeySortMin(b[0])).map(([slot, info]) => {
                             const label = bookingKeyLabel(slot);
                             return `
                             <li class="text-xs flex items-center justify-between text-stone-600 gap-2">
@@ -235,23 +235,23 @@ function render() {
             const full = bookings[baseStart];
             const h1 = bookings[baseStart + "-a"];
             const h2 = bookings[baseStart + "-b"];
-            if (full) {
-              // a single booking taking the whole 40-minute slot
+            if (isEntryActive(full)) {
+              // a single booking (or hold) taking the whole 40-minute slot
               return `<div class="rounded-lg py-2 px-3 text-sm border bg-stone-100 text-stone-400 border-stone-100 flex justify-between">
                         <span class="font-mono">${baseStart}–${toHHMM(toMin(baseStart) + SLOT_MINUTES)}</span>
-                        <span>${escapeHtml(full.name)}</span>
+                        <span>${full.pending ? "בתהליך קביעה…" : escapeHtml(full.name)}</span>
                       </div>`;
             }
-            // two separate half-bookings - show as two adjacent boxes, matching how they were actually booked
+            // two separate half-bookings/holds - show as two adjacent boxes, matching how they were actually booked
             return `
               <div class="flex gap-2">
                 <div class="flex-1 rounded-lg py-2 px-3 text-sm border bg-stone-100 text-stone-400 border-stone-100 text-center break-words leading-tight">
                   <div class="font-mono text-xs">${halfLabel(baseStart, 1)}</div>
-                  <div>${escapeHtml(h1 ? h1.name : "")}</div>
+                  <div>${h1 && h1.pending ? "בתהליך קביעה…" : escapeHtml(h1 ? h1.name : "")}</div>
                 </div>
                 <div class="flex-1 rounded-lg py-2 px-3 text-sm border bg-stone-100 text-stone-400 border-stone-100 text-center break-words leading-tight">
                   <div class="font-mono text-xs">${halfLabel(baseStart, 2)}</div>
-                  <div>${escapeHtml(h2 ? h2.name : "")}</div>
+                  <div>${h2 && h2.pending ? "בתהליך קביעה…" : escapeHtml(h2 ? h2.name : "")}</div>
                 </div>
               </div>`;
           }
@@ -269,7 +269,7 @@ function render() {
             <div class="flex gap-2">
               <div class="flex-1 rounded-lg py-2 px-3 text-sm border bg-stone-100 text-stone-400 border-stone-100 text-center break-words leading-tight">
                 <div class="font-mono text-xs">${halfLabel(baseStart, occupiedWhich)}</div>
-                <div>${escapeHtml(occupiedInfo ? occupiedInfo.name : "")}</div>
+                <div>${occupiedInfo && occupiedInfo.pending ? "בתהליך קביעה…" : escapeHtml(occupiedInfo ? occupiedInfo.name : "")}</div>
               </div>
               <button data-base="${baseStart}" data-choice="${openWhich === 1 ? "half1only" : "half2only"}" class="flex-1 rounded-lg py-2 px-3 text-sm font-mono border transition ${cls}">${label} (חצי תור)</button>
             </div>`;
@@ -280,8 +280,8 @@ function render() {
       <div class="bg-white rounded-xl border border-orange-200 p-4 mt-4">
         <h3 class="font-medium text-orange-900 mb-3">קביעת תור ל-${bs.baseStart}</h3>
         <div class="space-y-2">
-          <input id="bookName" type="text" placeholder="שם מלא" class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
-          <input id="bookPhone" type="tel" placeholder="טלפון" class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
+          <input id="bookName" type="text" placeholder="שם מלא" value="${escapeHtml(state.bookName)}" class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
+          <input id="bookPhone" type="tel" placeholder="טלפון" value="${escapeHtml(state.bookPhone)}" class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
           ${state.bookingError ? `<p class="text-red-600 text-sm">${state.bookingError}</p>` : ""}
           ${bs.availableChoice === "both" ? `
             <button id="confirmFullBtn" class="w-full bg-orange-800 text-white rounded-lg py-2 font-medium hover:bg-orange-900 transition">✓ קביעת תור מלא (${SLOT_MINUTES} דק')</button>
@@ -289,12 +289,18 @@ function render() {
           ` : `
             <button id="confirmHalfOnlyBtn" class="w-full bg-orange-800 text-white rounded-lg py-2 font-medium hover:bg-orange-900 transition">✓ אישור קביעת חצי תור (${HALF_MINUTES} דק')</button>
           `}
+          <button id="cancelHoldBtn" class="w-full bg-stone-100 text-stone-500 rounded-lg py-2 text-sm hover:bg-stone-200 transition">ביטול</button>
         </div>
       </div>` : ""}
   `;
   document.getElementById("backBtn").addEventListener("click", backToList);
   app.querySelectorAll("[data-base]").forEach((el) =>
     el.addEventListener("click", () => pickSlot(el.getAttribute("data-base"), el.getAttribute("data-choice"))));
+
+  const bookNameInput = document.getElementById("bookName");
+  if (bookNameInput) bookNameInput.addEventListener("input", (e) => { state.bookName = e.target.value; });
+  const bookPhoneInput = document.getElementById("bookPhone");
+  if (bookPhoneInput) bookPhoneInput.addEventListener("input", (e) => { state.bookPhone = e.target.value; });
 
   const confirmFullBtn = document.getElementById("confirmFullBtn");
   if (confirmFullBtn) confirmFullBtn.addEventListener("click", () => confirmBooking("full"));
@@ -307,4 +313,7 @@ function render() {
     const which = state.bookingSlot.availableChoice === "half1only" ? "half1" : "half2";
     confirmBooking(which);
   });
+
+  const cancelHoldBtn = document.getElementById("cancelHoldBtn");
+  if (cancelHoldBtn) cancelHoldBtn.addEventListener("click", cancelHold);
 }
