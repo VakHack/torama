@@ -1,7 +1,7 @@
 const DEFAULT_PIN = "1234";
 const SLOT_MINUTES = 40;
 const HALF_MINUTES = 20;
-const HOLD_DURATION_MS = 5 * 60 * 1000; // 5 minutes to fill in name+phone before a hold expires
+const HOLD_DURATION_MS = 1.5 * 60 * 1000; // 1.5 minutes to fill in name+phone before a hold expires
 const SESSION_ID = "s" + Date.now() + "-" + Math.random().toString(36).slice(2);
 const HEBREW_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 const HEBREW_MONTHS = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
