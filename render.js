@@ -1,4 +1,7 @@
+let holdCountdownIntervalId = null;
+
 function render() {
+  clearInterval(holdCountdownIntervalId);
   const app = document.getElementById("app");
   const today = todayStr();
 
@@ -278,7 +281,8 @@ function render() {
     </div>
     ${bs ? `
       <div class="bg-white rounded-xl border border-orange-200 p-4 mt-4">
-        <h3 class="font-medium text-orange-900 mb-3">קביעת תור ל-${bs.baseStart}</h3>
+        <h3 class="font-medium text-orange-900 mb-1">קביעת תור ל-${bs.baseStart}</h3>
+        <p id="holdCountdown" class="text-xs text-orange-700 mb-3"></p>
         <div class="space-y-2">
           <input id="bookName" type="text" placeholder="שם מלא" value="${escapeHtml(state.bookName)}" class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
           <input id="bookPhone" type="tel" placeholder="טלפון" value="${escapeHtml(state.bookPhone)}" class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
@@ -316,4 +320,24 @@ function render() {
 
   const cancelHoldBtn = document.getElementById("cancelHoldBtn");
   if (cancelHoldBtn) cancelHoldBtn.addEventListener("click", cancelHold);
+
+  clearInterval(holdCountdownIntervalId);
+  if (bs && bs.expiresAt) {
+    const updateCountdown = () => {
+      const el = document.getElementById("holdCountdown");
+      if (!el) { clearInterval(holdCountdownIntervalId); return; }
+      const remaining = bs.expiresAt - Date.now();
+      if (remaining <= 0) {
+        el.textContent = "⏱ תוקף ההחזקה פג - נא ללחוץ שוב על המשבצת";
+        el.classList.add("text-red-600");
+        clearInterval(holdCountdownIntervalId);
+        return;
+      }
+      const mm = Math.floor(remaining / 60000);
+      const ss = Math.floor((remaining % 60000) / 1000);
+      el.textContent = `⏱ המשבצת מוחזקת עבורך עוד ${mm}:${String(ss).padStart(2, "0")}`;
+    };
+    updateCountdown();
+    holdCountdownIntervalId = setInterval(updateCountdown, 1000);
+  }
 }
