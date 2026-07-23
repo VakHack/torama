@@ -18,6 +18,7 @@
 <meta name="twitter:image" content="https://vakhack.github.io/torama/torama-og-image.jpg" />
 
 <!-- ============================================================ -->
+<!-- שלב 1: הדבק כאן את פרטי פרויקט ה-Firebase שלך                 -->
 <!-- (Firebase Console -> Project settings -> General ->           -->
 <!--  Your apps -> SDK setup and configuration -> Config)          -->
 <!-- ============================================================ -->
@@ -44,6 +45,19 @@
       <a id="confirmModalGoogleBtn" target="_blank" rel="noopener" class="block text-center w-full bg-orange-800 text-white rounded-lg py-2 font-medium hover:bg-orange-900 transition">📅 הוספה ליומן Google</a>
       <button id="confirmModalIcsBtn" class="w-full bg-orange-100 text-orange-900 rounded-lg py-2 font-medium hover:bg-orange-200 transition">⬇️ הורדת קובץ ליומן (iPhone / Outlook)</button>
       <button id="confirmModalCloseBtn" class="w-full bg-stone-200 text-stone-700 rounded-lg py-2 font-medium hover:bg-stone-300 transition">סגירה</button>
+    </div>
+  </div>
+</div>
+
+<div id="editBookingModalOverlay" class="fixed inset-0 bg-black/40 z-40 hidden items-center justify-center p-4">
+  <div class="bg-white rounded-xl p-5 max-w-sm w-full border-2 border-orange-300">
+    <h3 class="brand-title font-bold text-xl text-orange-900 mb-2">✏️ עריכת פרטי תור</h3>
+    <p id="editModalSlotLabel" class="text-stone-500 text-sm mb-4"></p>
+    <div class="space-y-2">
+      <input id="editModalName" type="text" placeholder="שם מלא" class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
+      <input id="editModalPhone" type="tel" placeholder="טלפון" class="w-full border border-stone-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-700" />
+      <button id="editModalSaveBtn" class="w-full bg-orange-800 text-white rounded-lg py-2 font-medium hover:bg-orange-900 transition">שמור</button>
+      <button id="editModalCancelBtn" class="w-full bg-stone-200 text-stone-700 rounded-lg py-2 font-medium hover:bg-stone-300 transition">ביטול</button>
     </div>
   </div>
 </div>
