@@ -204,7 +204,7 @@ function confirmBooking(choice) {
     return current;
   }).then((result) => {
     if (!result.committed) {
-      showToast("תוקף ההחזקה על המשבצת פג, נא לבחור משבצת אחרת");
+      showToast("תוקף החזקת המשבצת פג, נא לבחור משבצת אחרת");
       state.bookingSlot = null;
       render();
     } else {
