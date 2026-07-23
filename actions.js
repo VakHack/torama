@@ -58,8 +58,8 @@ function cancelEditBooking() {
 }
 
 function saveBookingEdit(date, slotKey) {
-  const name = document.getElementById("edit-name-" + slotKey).value.trim();
-  const phone = document.getElementById("edit-phone-" + slotKey).value.trim();
+  const name = document.getElementById("editModalName").value.trim();
+  const phone = document.getElementById("editModalPhone").value.trim();
   if (!name || !phone) {
     showToast("נא למלא שם וטלפון");
     return;
@@ -215,7 +215,7 @@ function confirmBooking(choice) {
       render();
     }
   }).catch(() => {
-    showToast("השמירה נכשלה, נסה שוב");
+    showToast("שמירה נכשלה, נסה שוב");
   });
 }
 
@@ -250,4 +250,3 @@ document.getElementById("brandIcon").addEventListener("click", () => {
   state.mode = cached ? "admin" : "pinGate";
   render();
 });
-
