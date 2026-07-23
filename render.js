@@ -33,6 +33,28 @@ function render() {
     modalOverlay.classList.remove("flex");
   }
 
+  const editModalOverlay = document.getElementById("editBookingModalOverlay");
+  if (state.editingBookingKey) {
+    const [editDate, editSlot] = state.editingBookingKey.split("|");
+    const info = state.days[editDate] && state.days[editDate].bookings && state.days[editDate].bookings[editSlot];
+    if (info) {
+      document.getElementById("editModalSlotLabel").textContent = `${formatDateLong(editDate)} · ${bookingKeyLabel(editSlot)}`;
+      document.getElementById("editModalName").value = info.name;
+      document.getElementById("editModalPhone").value = info.phone;
+      document.getElementById("editModalSaveBtn").onclick = () => saveBookingEdit(editDate, editSlot);
+      document.getElementById("editModalCancelBtn").onclick = cancelEditBooking;
+      editModalOverlay.classList.remove("hidden");
+      editModalOverlay.classList.add("flex");
+    } else {
+      state.editingBookingKey = null;
+      editModalOverlay.classList.add("hidden");
+      editModalOverlay.classList.remove("flex");
+    }
+  } else {
+    editModalOverlay.classList.add("hidden");
+    editModalOverlay.classList.remove("flex");
+  }
+
   if (state.mode === "pinGate") {
     app.innerHTML = `
       <div class="bg-white rounded-xl border border-stone-200 p-6">
@@ -130,21 +152,6 @@ function render() {
                         <ul class="space-y-1.5">
                           ${Object.entries(bookings).filter(([, info]) => !info.pending).sort((a,b) => bookingKeySortMin(a[0]) - bookingKeySortMin(b[0])).map(([slot, info]) => {
                             const label = bookingKeyLabel(slot);
-                            const isEditing = state.editingBookingKey === date + "|" + slot;
-                            if (isEditing) {
-                              return `
-                              <li class="text-xs text-stone-600">
-                                <div class="flex items-center gap-1 mb-1">
-                                  <span class="font-mono shrink-0">${label}</span>
-                                </div>
-                                <div class="flex items-center gap-1.5">
-                                  <input id="edit-name-${slot}" type="text" value="${escapeHtml(info.name)}" placeholder="שם מלא" class="flex-1 border border-stone-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-700" />
-                                  <input id="edit-phone-${slot}" type="tel" value="${escapeHtml(info.phone)}" placeholder="טלפון" class="flex-1 border border-stone-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-700" />
-                                  <button data-save-edit="${date}|${slot}" class="shrink-0 bg-orange-800 text-white rounded-lg px-2 py-1 text-xs hover:bg-orange-900 transition">שמור</button>
-                                  <button data-cancel-edit="1" class="shrink-0 text-stone-400 hover:text-stone-600 text-xs px-1">ביטול</button>
-                                </div>
-                              </li>`;
-                            }
                             return `
                             <li class="text-xs flex items-center justify-between text-stone-600 gap-2">
                               <span class="font-mono shrink-0">${label}</span>
@@ -190,17 +197,6 @@ function render() {
         e.stopPropagation();
         const [d, slotKey] = el.getAttribute("data-edit-booking").split("|");
         startEditBooking(d, slotKey);
-      }));
-    app.querySelectorAll("[data-save-edit]").forEach((el) =>
-      el.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const [d, slotKey] = el.getAttribute("data-save-edit").split("|");
-        saveBookingEdit(d, slotKey);
-      }));
-    app.querySelectorAll("[data-cancel-edit]").forEach((el) =>
-      el.addEventListener("click", (e) => {
-        e.stopPropagation();
-        cancelEditBooking();
       }));
     app.querySelectorAll("[data-save-address]").forEach((el) =>
       el.addEventListener("click", () => {
