@@ -215,7 +215,7 @@ function confirmBooking(choice) {
       render();
     }
   }).catch(() => {
-    showToast("שמירה נכשלה, נסה שוב");
+    showToast("השמירה נכשלה, נסה שוב");
   });
 }
 
@@ -250,3 +250,4 @@ document.getElementById("brandIcon").addEventListener("click", () => {
   state.mode = cached ? "admin" : "pinGate";
   render();
 });
+
