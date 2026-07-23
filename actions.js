@@ -47,6 +47,32 @@ function deleteBooking(date, slotKey, name) {
     .catch(() => showToast("המחיקה נכשלה, נסה שוב"));
 }
 
+function startEditBooking(date, slotKey) {
+  state.editingBookingKey = date + "|" + slotKey;
+  render();
+}
+
+function cancelEditBooking() {
+  state.editingBookingKey = null;
+  render();
+}
+
+function saveBookingEdit(date, slotKey) {
+  const name = document.getElementById("edit-name-" + slotKey).value.trim();
+  const phone = document.getElementById("edit-phone-" + slotKey).value.trim();
+  if (!name || !phone) {
+    showToast("נא למלא שם וטלפון");
+    return;
+  }
+  db.ref(`days/${date}/bookings/${slotKey}`).update({ name, phone })
+    .then(() => {
+      showToast("הפרטים עודכנו");
+      state.editingBookingKey = null;
+      render();
+    })
+    .catch(() => showToast("העדכון נכשל, נסה שוב"));
+}
+
 function savePin() {
   const val = document.getElementById("newPinInput").value;
   if (!val || val.length < 4) { showToast("קוד סודי חייב לפחות 4 תווים"); return; }
