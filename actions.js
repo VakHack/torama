@@ -73,6 +73,60 @@ function saveBookingEdit(date, slotKey) {
     .catch(() => showToast("העדכון נכשל, נסה שוב"));
 }
 
+function openAdminBookModal(date, baseStart, availableChoice) {
+  state.adminBookingTarget = { date, baseStart, availableChoice };
+  render();
+}
+
+function cancelAdminBook() {
+  state.adminBookingTarget = null;
+  render();
+}
+
+function adminBookSlot() {
+  const target = state.adminBookingTarget;
+  if (!target) return;
+  const { date, baseStart, availableChoice } = target;
+  const name = document.getElementById("adminBookName").value.trim();
+  const phone = document.getElementById("adminBookPhone").value.trim();
+  if (!name || !phone) {
+    showToast("נא למלא שם וטלפון");
+    return;
+  }
+  let choice;
+  if (availableChoice === "both") {
+    const radios = document.getElementsByName("adminBookChoice");
+    choice = "full";
+    radios.forEach((r) => { if (r.checked) choice = r.value; });
+    choice = choice === "half" ? "half1" : "full";
+  } else {
+    choice = availableChoice === "half1only" ? "half1" : "half2";
+  }
+  const fullKey = baseStart;
+  const half1Key = baseStart + "-a";
+  const half2Key = baseStart + "-b";
+  const chosenKey = choice === "full" ? fullKey : choice === "half1" ? half1Key : half2Key;
+  const conflictKeys = choice === "full" ? [fullKey, half1Key, half2Key] : [fullKey, chosenKey];
+  const now = Date.now();
+  db.ref(`days/${date}/bookings`).transaction((current) => {
+    current = current || {};
+    for (const k of conflictKeys) {
+      const existing = current[k];
+      if (existing && (!existing.pending || existing.expiresAt > now)) return; // תפוס בפועל, או מוחזק ע"י לקוח/ה כרגע
+    }
+    current[chosenKey] = { name, phone };
+    return current;
+  }).then((result) => {
+    if (!result.committed) {
+      showToast("המשבצת הזו נתפסה/הוחזקה בינתיים, נסה/י משבצת אחרת");
+    } else {
+      showToast("התור נוסף בהצלחה");
+      state.adminBookingTarget = null;
+    }
+    render();
+  }).catch(() => showToast("שמירה נכשלה, נסה שוב"));
+}
+
 function savePin() {
   const val = document.getElementById("newPinInput").value;
   if (!val || val.length < 4) { showToast("קוד סודי חייב לפחות 4 תווים"); return; }
@@ -204,7 +258,7 @@ function confirmBooking(choice) {
     return current;
   }).then((result) => {
     if (!result.committed) {
-      showToast("תוקף החזקת המשבצת פג, נא לבחור משבצת אחרת");
+      showToast("תוקף ההחזקה על המשבצת פג, נא לבחור משבצת אחרת");
       state.bookingSlot = null;
       render();
     } else {
