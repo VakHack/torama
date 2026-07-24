@@ -19,6 +19,7 @@ let state = {
   bookingError: "",
   expandedAdminDate: null,
   editingBookingKey: null, // "date|slot" of the booking currently being edited in the admin panel
+  adminBookingTarget: null, // { date, baseStart, availableChoice } when admin manually books a free slot
   pinError: "",
 };
 
