@@ -1,4 +1,5 @@
 let holdCountdownIntervalId = null;
+let lastAdminBookingTargetKey = null;
 
 function render() {
   clearInterval(holdCountdownIntervalId);
@@ -53,6 +54,46 @@ function render() {
   } else {
     editModalOverlay.classList.add("hidden");
     editModalOverlay.classList.remove("flex");
+  }
+
+  const adminBookModalOverlay = document.getElementById("adminBookModalOverlay");
+  if (state.adminBookingTarget) {
+    const { date: abDate, baseStart: abBase, availableChoice: abChoice } = state.adminBookingTarget;
+    const abDay = state.days[abDate];
+    if (abDay) {
+      const choiceRow = document.getElementById("adminBookChoiceRow");
+      let labelText;
+      if (abChoice === "both") {
+        choiceRow.classList.remove("hidden");
+        choiceRow.classList.add("flex");
+        labelText = `${formatDateLong(abDate)} · ${abBase}–${toHHMM(toMin(abBase) + SLOT_MINUTES)}`;
+      } else {
+        choiceRow.classList.add("hidden");
+        choiceRow.classList.remove("flex");
+        labelText = `${formatDateLong(abDate)} · ${halfLabel(abBase, abChoice === "half1only" ? 1 : 2)}`;
+      }
+      document.getElementById("adminBookSlotLabel").textContent = labelText;
+      const targetKey = abDate + "|" + abBase + "|" + abChoice;
+      if (lastAdminBookingTargetKey !== targetKey) {
+        document.getElementById("adminBookName").value = "";
+        document.getElementById("adminBookPhone").value = "";
+        const fullRadio = document.querySelector('input[name="adminBookChoice"][value="full"]');
+        if (fullRadio) fullRadio.checked = true;
+        lastAdminBookingTargetKey = targetKey;
+      }
+      document.getElementById("adminBookSaveBtn").onclick = adminBookSlot;
+      document.getElementById("adminBookCancelBtn").onclick = cancelAdminBook;
+      adminBookModalOverlay.classList.remove("hidden");
+      adminBookModalOverlay.classList.add("flex");
+    } else {
+      state.adminBookingTarget = null;
+      adminBookModalOverlay.classList.add("hidden");
+      adminBookModalOverlay.classList.remove("flex");
+    }
+  } else {
+    adminBookModalOverlay.classList.add("hidden");
+    adminBookModalOverlay.classList.remove("flex");
+    lastAdminBookingTargetKey = null;
   }
 
   if (state.mode === "pinGate") {
@@ -162,6 +203,24 @@ function render() {
                               </span>
                             </li>`;}).join("")}
                         </ul>`}
+                      ${(() => {
+                        const freeSlots = generateSlots(day).map((baseStart) => ({ baseStart, status: getSlotStatus(baseStart, bookings).state })).filter((s) => s.status !== "full");
+                        if (freeSlots.length === 0) return "";
+                        return `
+                          <div class="pt-2 border-t border-stone-200">
+                            <p class="text-xs text-stone-500 mb-1.5">משבצות פנויות (לחיצה = הוספת תור ידנית):</p>
+                            <div class="flex flex-wrap gap-1.5">
+                              ${freeSlots.map((s) => {
+                                if (s.status === "open") {
+                                  return `<button data-admin-book="${date}|${s.baseStart}|both" class="text-xs px-2 py-1 rounded-full border border-orange-300 text-orange-800 hover:bg-orange-100 transition">${s.baseStart}–${toHHMM(toMin(s.baseStart) + SLOT_MINUTES)}</button>`;
+                                }
+                                const which = s.status === "half2open" ? 2 : 1;
+                                const choice = which === 1 ? "half1only" : "half2only";
+                                return `<button data-admin-book="${date}|${s.baseStart}|${choice}" class="text-xs px-2 py-1 rounded-full border border-orange-300 text-orange-800 hover:bg-orange-100 transition">${halfLabel(s.baseStart, which)} (חצי)</button>`;
+                              }).join("")}
+                            </div>
+                          </div>`;
+                      })()}
                     </div>` : ""}
                 </div>`;
             }).join("")}
@@ -197,6 +256,12 @@ function render() {
         e.stopPropagation();
         const [d, slotKey] = el.getAttribute("data-edit-booking").split("|");
         startEditBooking(d, slotKey);
+      }));
+    app.querySelectorAll("[data-admin-book]").forEach((el) =>
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const [d, baseStart, choice] = el.getAttribute("data-admin-book").split("|");
+        openAdminBookModal(d, baseStart, choice);
       }));
     app.querySelectorAll("[data-save-address]").forEach((el) =>
       el.addEventListener("click", () => {
