@@ -73,6 +73,11 @@ function saveBookingEdit(date, slotKey) {
     .catch(() => showToast("העדכון נכשל, נסה שוב"));
 }
 
+function markReminderSent(date, slotKey) {
+  state.remindersSent[date + "|" + slotKey] = true;
+  render();
+}
+
 function openAdminBookModal(date, baseStart, availableChoice) {
   state.adminBookingTarget = { date, baseStart, availableChoice };
   render();
@@ -304,3 +309,4 @@ document.getElementById("brandIcon").addEventListener("click", () => {
   state.mode = cached ? "admin" : "pinGate";
   render();
 });
+
