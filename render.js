@@ -193,11 +193,19 @@ function render() {
                         <ul class="space-y-1.5">
                           ${Object.entries(bookings).filter(([, info]) => !info.pending).sort((a,b) => bookingKeySortMin(a[0]) - bookingKeySortMin(b[0])).map(([slot, info]) => {
                             const label = bookingKeyLabel(slot);
+                            const sentKey = date + "|" + slot;
+                            const sent = !!state.remindersSent[sentKey];
                             return `
                             <li class="text-xs flex items-center justify-between text-stone-600 gap-2">
                               <span class="font-mono shrink-0">${label}</span>
                               <span class="flex items-center gap-1.5 flex-1 justify-end min-w-0">
                                 <span class="text-sm font-medium text-stone-700 break-words">${escapeHtml(info.name)} · ${escapeHtml(info.phone)}</span>
+                                <a href="${buildReminderWhatsAppLink(date, slot, info.name, info.phone)}" target="_blank" rel="noopener"
+                                   data-mark-reminder-sent="${date}|${slot}"
+                                   class="shrink-0 text-xs px-1.5 py-0.5 rounded-full transition ${sent ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800 hover:bg-orange-200"}"
+                                   title="שלח תזכורת בוואטסאפ">
+                                  ${sent ? "✓" : "📲"}
+                                </a>
                                 <button data-edit-booking="${date}|${slot}" class="text-stone-300 hover:text-orange-700 shrink-0" title="ערוך פרטים">✏️</button>
                                 <button data-delete-booking="${date}|${slot}" data-booking-name="${escapeHtml(info.name)}" class="text-stone-300 hover:text-red-600 shrink-0" title="מחק תור">🗑</button>
                               </span>
@@ -241,6 +249,11 @@ function render() {
     document.getElementById("savePinBtn").addEventListener("click", savePin);
     app.querySelectorAll("[data-toggle-date]").forEach((el) =>
       el.addEventListener("click", () => toggleAdminDate(el.getAttribute("data-toggle-date"))));
+    app.querySelectorAll("[data-mark-reminder-sent]").forEach((el) =>
+      el.addEventListener("click", () => {
+        const [d, slotKey] = el.getAttribute("data-mark-reminder-sent").split("|");
+        markReminderSent(d, slotKey);
+      }));
     app.querySelectorAll("[data-toggle-active]").forEach((el) =>
       el.addEventListener("click", () => toggleActive(el.getAttribute("data-toggle-active"))));
     app.querySelectorAll("[data-delete-date]").forEach((el) =>
@@ -435,3 +448,4 @@ function render() {
     holdCountdownIntervalId = setInterval(updateCountdown, 1000);
   }
 }
+
