@@ -20,6 +20,7 @@ let state = {
   expandedAdminDate: null,
   editingBookingKey: null, // "date|slot" of the booking currently being edited in the admin panel
   adminBookingTarget: null, // { date, baseStart, availableChoice } when admin manually books a free slot
+  remindersSent: {}, // "date|slot" -> true, for visual "sent" marking (session-only, not persisted)
   pinError: "",
 };
 
@@ -112,6 +113,22 @@ function normalizePhoneForWhatsApp(phone) {
   if (digits.startsWith("0")) digits = "972" + digits.slice(1);
   return digits;
 }
+/* מחזיר "היום" / "מחר" / התאריך המלא, בהתאם למרחק בין התאריך הנתון לבין היום בפועל */
+function dayWordForDate(date) {
+  const t = todayStr();
+  if (date === t) return "היום";
+  const d = new Date(t + "T00:00:00");
+  d.setDate(d.getDate() + 1);
+  const tomorrow = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  if (date === tomorrow) return "מחר";
+  return formatDateLong(date);
+}
+function buildReminderWhatsAppLink(date, slotKey, name, phone) {
+  const timeRange = bookingKeyTimeRange(slotKey);
+  const dayWord = dayWordForDate(date);
+  const message = `היי ${name}, תזכורת לתור שלך ${dayWord} בשעה ${timeRange} אצל רמה. מצפים לראותך! 🙂`;
+  return `https://wa.me/${normalizePhoneForWhatsApp(phone)}?text=${encodeURIComponent(message)}`;
+}
 function pad2(n) { return String(n).padStart(2, "0"); }
 function icsDateTime(dateStr, minutesOfDay) {
   // floating local time, no timezone conversion - relies on viewer's device timezone
@@ -176,3 +193,4 @@ function escapeHtml(str) {
   div.textContent = str;
   return div.innerHTML;
 }
+
