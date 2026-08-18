@@ -193,8 +193,7 @@ function render() {
                         <ul class="space-y-3">
                           ${Object.entries(bookings).filter(([, info]) => !info.pending).sort((a,b) => bookingKeySortMin(a[0]) - bookingKeySortMin(b[0])).map(([slot, info]) => {
                             const label = bookingKeyLabel(slot);
-                            const sentKey = date + "|" + slot;
-                            const sent = !!state.remindersSent[sentKey];
+                            const sent = !!info.reminderSent;
                             return `
                             <li class="text-xs text-stone-600 pb-2 border-b border-stone-100 last:border-0 last:pb-0">
                               <div class="flex items-center justify-between gap-2">
