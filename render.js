@@ -450,4 +450,3 @@ function render() {
     holdCountdownIntervalId = setInterval(updateCountdown, 1000);
   }
 }
-
