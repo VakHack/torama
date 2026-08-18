@@ -24,7 +24,6 @@ let state = {
   pinError: "",
 };
 
-
 function toMin(t) {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
@@ -145,7 +144,7 @@ ${locationLines}
 ${priceLines}
 כדאי לבוא עם שיער פזור ויבש
 אם את צריכה לבטל- אנא עדכני אותי עד מחר.
-נתראה ❤️❤️❤️`;
+נתראה!`;
 
   return `https://wa.me/${normalizePhoneForWhatsApp(phone)}?text=${encodeURIComponent(message)}`;
 }
