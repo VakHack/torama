@@ -74,8 +74,7 @@ function saveBookingEdit(date, slotKey) {
 }
 
 function markReminderSent(date, slotKey) {
-  state.remindersSent[date + "|" + slotKey] = true;
-  render();
+  db.ref(`days/${date}/bookings/${slotKey}/reminderSent`).set(true).catch(() => {});
 }
 
 function openAdminBookModal(date, baseStart, availableChoice) {
@@ -309,4 +308,3 @@ document.getElementById("brandIcon").addEventListener("click", () => {
   state.mode = cached ? "admin" : "pinGate";
   render();
 });
-
