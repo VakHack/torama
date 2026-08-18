@@ -200,7 +200,7 @@ function render() {
                               <div class="flex items-center justify-between gap-2">
                                 <span class="font-mono">${label}</span>
                                 <span class="flex items-center gap-2.5">
-                                  <a href="${buildReminderWhatsAppLink(date, slot, info.name, info.phone)}" target="_blank" rel="noopener"
+                                  <a href="${buildReminderWhatsAppLink(date, slot, info.name, info.phone, day.address)}" target="_blank" rel="noopener"
                                      data-mark-reminder-sent="${date}|${slot}"
                                      class="shrink-0 text-xs px-1.5 py-0.5 rounded-full transition ${sent ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800 hover:bg-orange-200"}"
                                      title="שלח תזכורת בוואטסאפ">
@@ -450,4 +450,3 @@ function render() {
     holdCountdownIntervalId = setInterval(updateCountdown, 1000);
   }
 }
-
