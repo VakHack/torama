@@ -190,6 +190,7 @@ function downloadIcsFile(date, startMin, endMin, address) {
     "END:VEVENT",
     "END:VCALENDAR",
   ].join("\r\n");
+  
   const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
