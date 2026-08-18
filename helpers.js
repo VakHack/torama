@@ -20,7 +20,6 @@ let state = {
   expandedAdminDate: null,
   editingBookingKey: null, // "date|slot" of the booking currently being edited in the admin panel
   adminBookingTarget: null, // { date, baseStart, availableChoice } when admin manually books a free slot
-  remindersSent: {}, // "date|slot" -> true, for visual "sent" marking (session-only, not persisted)
   pinError: "",
 };
 
@@ -28,7 +27,6 @@ function toMin(t) {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
 }
-
 function toHHMM(min) {
   const h = String(Math.floor(min / 60)).padStart(2, "0");
   const m = String(min % 60).padStart(2, "0");
