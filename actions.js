@@ -277,6 +277,7 @@ function confirmBooking(choice) {
   });
 }
 
+
 function cancelHold() {
   if (state.bookingSlot) {
     releaseHold(state.selectedDate, keysForChoice(state.bookingSlot.baseStart, state.bookingSlot.availableChoice));
