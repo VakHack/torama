@@ -202,8 +202,8 @@ function render() {
                                   <a href="${buildReminderWhatsAppLink(date, slot, info.name, info.phone, day.address)}" target="_blank" rel="noopener"
                                      data-mark-reminder-sent="${date}|${slot}"
                                      class="shrink-0 text-xs px-1.5 py-0.5 rounded-full transition ${sent ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800 hover:bg-orange-200"}"
-                                     title="שלח תזכורת בוואטסאפ">
-                                    ${sent ? "✓" : "📲"}
+                                     title="${sent ? "תזכורת נשלחה (לחיצה = שליחה חוזרת)" : "שלח תזכורת בוואטסאפ"}">
+                                    <span class="relative inline-block leading-none">📲${sent ? '<span class="absolute -top-1 -left-1.5 w-2.5 h-2.5 bg-green-600 text-white rounded-full flex items-center justify-center text-[8px] leading-none">✓</span>' : ""}</span>
                                   </a>
                                   <button data-edit-booking="${date}|${slot}" class="text-stone-300 hover:text-orange-700 shrink-0" title="ערוך פרטים">✏️</button>
                                   <button data-delete-booking="${date}|${slot}" data-booking-name="${escapeHtml(info.name)}" class="text-stone-300 hover:text-red-600 shrink-0" title="מחק תור">🗑</button>
